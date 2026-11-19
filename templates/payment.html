@@ -8,7 +8,7 @@
         <h2 class="text-center mb-2">Complete Your Payment</h2>
 
         <p class="text-center text-muted">
-            Pay securely using M-Pesa to unlock your file.
+            Pay securely using M-Pesa through Paystack to unlock your file.
         </p>
 
         <div class="text-center my-3">
@@ -19,11 +19,22 @@
         </div>
 
         <div id="message" class="alert alert-info">
-            Enter your M-Pesa number to receive a payment prompt.
+            Enter your email and M-Pesa number to receive a payment prompt.
         </div>
 
         {% if order.status != "paid_completed" %}
         <form id="paymentForm">
+
+            <label class="form-label">Email address</label>
+
+            <input
+                type="email"
+                name="email"
+                id="email"
+                class="form-control mb-3"
+                placeholder="you@example.com"
+                required
+            >
 
             <label class="form-label">M-Pesa phone number</label>
 
@@ -127,8 +138,9 @@ async function startPaymentCheck() {
     if (polling) return;
     polling = true;
 
+    message.className = "alert alert-info";
     message.textContent =
-        "Waiting for Safaricom to confirm your payment. Please complete the M-Pesa prompt.";
+        "Waiting for Paystack to confirm your M-Pesa payment. Please check your phone and complete the payment.";
 
     for (let i = 0; i < 60; i++) {
         try {
@@ -159,7 +171,7 @@ async function startPaymentCheck() {
             ) {
                 message.className = "alert alert-danger";
                 message.textContent =
-                    "Payment was not completed successfully. Please try again.";
+                    "Payment was not completed. Please try again.";
 
                 if (payButton) {
                     payButton.disabled = false;
