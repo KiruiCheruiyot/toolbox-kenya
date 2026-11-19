@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}<a href="{{ url_for('index') }}">← All tools</a><div class="card mt-3"><div class="card-body p-4"><h1 class="h3">{{ {'pdf-merge':'PDF Merger','pdf-compress':'PDF Compressor','cv-builder':'CV Builder'}[tool_name] }}</h1><p class="text-secondary">Preview price: <strong>KSh {{ price }}</strong></p>
+<form method="post" enctype="multipart/form-data">
+{% if tool_name in ['pdf-merge','pdf-compress'] %}<label class="form-label">Select PDF file{% if tool_name=='pdf-merge' %}s (at least two){% endif %}</label><input class="form-control mb-3" type="file" name="files" accept="application/pdf,.pdf" {% if tool_name=='pdf-merge' %}multiple{% endif %} required>
+{% else %}
+{% for field,label in [('full_name','Full name'),('email','Email'),('phone','Phone number'),('location','Town / County'),('summary','Professional summary'),('education','Education'),('experience','Work experience'),('skills','Skills (comma separated)')] %}
+<label class="form-label">{{ label }}</label>{% if field in ['summary','education','experience','skills'] %}<textarea class="form-control mb-3" name="{{ field }}" rows="3"></textarea>{% else %}<input class="form-control mb-3" name="{{ field }}" {% if field=='full_name' %}required{% endif %}>{% endif %}
+{% endfor %}{% endif %}
+<button class="btn btn-primary">Generate preview</button></form></div></div>{% endblock %}

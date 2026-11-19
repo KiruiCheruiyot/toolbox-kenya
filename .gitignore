@@ -1,0 +1,33 @@
+.venv/
+__pycache__/
+.env
+*.pyc
+*.db
+uploads/*
+processed/*
+!.gitkeep
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Database
+*.db
+instance/
+
+# Uploaded and generated files
+uploads/
+outputs/
+generated/
+*.pdf
+
+# Development files
+.vscode/
+.idea/
+.pytest_cache/

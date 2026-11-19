@@ -1,0 +1,187 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow p-4 mx-auto" style="max-width: 520px;">
+
+        <h2 class="text-center mb-2">Complete Your Payment</h2>
+
+        <p class="text-center text-muted">
+            Pay securely using M-Pesa to unlock your file.
+        </p>
+
+        <div class="text-center my-3">
+            <h1 class="text-success">
+                KSh {{ order.amount }}
+            </h1>
+            <p class="text-muted">{{ order.tool }}</p>
+        </div>
+
+        <div id="message" class="alert alert-info">
+            Enter your M-Pesa number to receive a payment prompt.
+        </div>
+
+        {% if order.status != "paid_completed" %}
+        <form id="paymentForm">
+
+            <label class="form-label">M-Pesa phone number</label>
+
+            <input
+                type="tel"
+                name="phone"
+                id="phone"
+                class="form-control mb-3"
+                placeholder="0712345678"
+                required
+            >
+
+            <button
+                type="submit"
+                id="payButton"
+                class="btn btn-success w-100"
+            >
+                Pay KSh {{ order.amount }} with M-Pesa
+            </button>
+
+        </form>
+        {% endif %}
+
+        <div id="downloadSection" class="mt-3"
+             {% if order.status != "paid_completed" %}style="display:none"{% endif %}>
+
+            <div class="alert alert-success text-center">
+                Payment verified successfully!
+            </div>
+
+            <a
+                href="{{ url_for('download', order_id=order.id) }}"
+                class="btn btn-success w-100"
+            >
+                Download Your File
+            </a>
+        </div>
+
+        <p class="small text-muted text-center mt-3">
+            Order reference: {{ order.id }}
+        </p>
+
+        <a href="{{ url_for('index') }}"
+           class="text-center d-block">
+            Back to ToolBox Kenya
+        </a>
+
+    </div>
+</div>
+
+<script>
+const form = document.getElementById("paymentForm");
+const message = document.getElementById("message");
+const payButton = document.getElementById("payButton");
+const downloadSection = document.getElementById("downloadSection");
+
+let polling = false;
+
+if (form) {
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        payButton.disabled = true;
+        payButton.textContent = "Sending payment request...";
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(
+                "{{ url_for('pay', order_id=order.id) }}",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Payment request failed.");
+            }
+
+            message.className = "alert alert-info";
+            message.textContent = data.message;
+
+            payButton.textContent = "Waiting for payment...";
+
+            startPaymentCheck();
+
+        } catch (error) {
+            message.className = "alert alert-danger";
+            message.textContent = error.message;
+
+            payButton.disabled = false;
+            payButton.textContent = "Try Payment Again";
+        }
+    });
+}
+
+async function startPaymentCheck() {
+    if (polling) return;
+    polling = true;
+
+    message.textContent =
+        "Waiting for Safaricom to confirm your payment. Please complete the M-Pesa prompt.";
+
+    for (let i = 0; i < 60; i++) {
+        try {
+            const response = await fetch(
+                "{{ url_for('payment_status', order_id=order.id) }}"
+            );
+
+            const data = await response.json();
+
+            if (data.paid) {
+                message.className = "alert alert-success";
+                message.textContent =
+                    "Payment confirmed! Your file is ready.";
+
+                downloadSection.style.display = "block";
+
+                if (form) {
+                    form.style.display = "none";
+                }
+
+                polling = false;
+                return;
+            }
+
+            if (
+                data.status === "payment_failed" ||
+                data.status === "verification_failed"
+            ) {
+                message.className = "alert alert-danger";
+                message.textContent =
+                    "Payment was not completed successfully. Please try again.";
+
+                if (payButton) {
+                    payButton.disabled = false;
+                    payButton.textContent = "Try Payment Again";
+                }
+
+                polling = false;
+                return;
+            }
+
+        } catch (error) {
+            console.error(error);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+
+    message.className = "alert alert-warning";
+    message.textContent =
+        "Payment confirmation is taking longer than expected. Refresh this page later to check your order.";
+
+    polling = false;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<section class="hero p-4 p-md-5 rounded-4 mb-4"><span class="badge text-bg-warning mb-3">Made for everyday work in Kenya</span><h1 class="display-5 fw-bold">Useful online tools.<br>Simple pay-per-use pricing.</h1><p class="lead">Merge and compress PDFs or create a clean CV in minutes.</p><a class="btn btn-primary btn-lg" href="#tools">Explore tools</a></section>
+<h2 id="tools" class="mb-3">Choose a tool</h2><div class="row g-3">
+{% for slug,title,desc,price in [('pdf-merge','PDF Merger','Combine multiple PDFs into one file.',prices['pdf-merge']),('pdf-compress','PDF Compressor','Reduce the size of a PDF document.',prices['pdf-compress']),('cv-builder','CV Builder','Create a downloadable CV in PDF format.',prices['cv-builder'])] %}
+<div class="col-md-4"><div class="card tool-card h-100"><div class="card-body"><div class="fs-2 mb-2">📄</div><h3 class="h5">{{ title }}</h3><p class="text-secondary">{{ desc }}</p><p class="price">KSh {{ price }}</p><a class="btn btn-primary" href="{{ url_for('tool',tool_name=slug) }}">Use tool</a></div></div></div>
+{% endfor %}</div><div class="alert alert-info mt-4"><strong>Development preview:</strong> This starter currently generates sample results without charging. M-Pesa endpoints are scaffolding only and must be fully verified before taking real payments.</div>
+{% endblock %}
